@@ -4,11 +4,37 @@ Django settings for portfolio project.
 from pathlib import Path
 import os
 
+def _read_local_env():
+    """Load simple KEY=value entries from .env without overriding real env vars."""
+    env_file = Path(__file__).resolve().parent.parent / '.env'
+    if not env_file.exists():
+        return
+    for raw_line in env_file.read_text().splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith('#') or '=' not in line:
+            continue
+        key, value = line.split('=', 1)
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+_read_local_env()
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-change-this-in-production-use-env-variables'
 
 DEBUG = True
+
+_gemini_key = os.environ.get('GEMINI_API_KEY', '')
+_openai_key = os.environ.get('OPENAI_API_KEY', '')
+CHATBOT_PROVIDER = os.environ.get('CHATBOT_PROVIDER', 'gemini' if _gemini_key else 'openai').lower()
+CHATBOT_API_KEY = os.environ.get('CHATBOT_API_KEY') or (_gemini_key if CHATBOT_PROVIDER == 'gemini' else _openai_key)
+_chatbot_defaults = {
+    'gemini': ('gemini-3.8-flash', 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions'),
+    'openai': ('gpt-4o-mini', 'https://api.openai.com/v1/chat/completions'),
+}
+_default_chatbot_model, _default_chatbot_url = _chatbot_defaults.get(CHATBOT_PROVIDER, _chatbot_defaults['gemini'])
+CHATBOT_MODEL = os.environ.get('CHATBOT_MODEL', _default_chatbot_model)
+CHATBOT_API_URL = os.environ.get('CHATBOT_API_URL', _default_chatbot_url)
 
 ALLOWED_HOSTS = ['*']
 
