@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load portfolio_tags %}
+{% block title %}Achievements &amp; Certifications · {{ profile.name|default:"Portfolio" }}{% endblock %}
+{% block content %}
+<main class="page-wrap pb-10">
+  <p class="page-kicker">Milestones · 03</p>
+  <h1 class="page-title">Achievements<br>&amp; certifications<span class="text-warm">.</span></h1>
+  {% if achievements %}
+  <div class="achievement-grid">
+    {% for item in achievements %}
+    <article class="achievement-card reveal reveal-delay-{{ forloop.counter|mod_clamp }}">
+      {% if item.image %}
+      <div class="achievement-image-wrap">
+        {% if item.watermarked_image %}<img src="{{ item.watermarked_image.url }}" alt="{{ item.title }} certificate with watermark" loading="lazy">{% else %}<img src="{{ item.image.url }}" alt="{{ item.title }}" loading="lazy">{% endif %}
+      </div>
+      {% endif %}
+      <div class="achievement-content">
+        <span class="achievement-type">{{ item.get_category_display }}</span>
+        <h2>{{ item.title }}</h2>
+        {% if item.issuer or item.date %}
+        <div class="achievement-meta">
+          {% if item.issuer %}<span>{{ item.issuer }}</span>{% endif %}
+          {% if item.issuer and item.date %}<i aria-hidden="true">·</i>{% endif %}
+          {% if item.date %}<time datetime="{{ item.date|date:'Y-m-d' }}">{{ item.date|date:'M Y' }}</time>{% endif %}
+        </div>
+        {% endif %}
+        {% if item.description %}<p>{{ item.description }}</p>{% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-muted">No achievements or certifications added yet.</p>
+  {% endif %}
+</main>
+{% endblock %}

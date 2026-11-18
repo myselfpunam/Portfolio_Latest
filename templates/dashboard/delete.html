@@ -1,0 +1,7 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Delete {{ section.label }}{% endblock %}
+{% block breadcrumb %}<a href="{% url 'dashboard_section' section.key %}">{{ section.label }}</a> / Delete{% endblock %}
+{% block dashboard_content %}
+<div class="page-heading"><div><p class="eyebrow">Please confirm</p><h1>Delete this item?</h1></div></div>
+<section class="panel delete-panel"><p>You're about to permanently delete <strong>{{ record }}</strong>. This cannot be undone.</p><form method="post" class="form-actions">{% csrf_token %}<a class="button secondary" href="{% url 'dashboard_section' section.key %}">Keep it</a><button class="button danger" type="submit">Delete permanently</button></form></section>
+{% endblock %}

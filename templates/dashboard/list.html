@@ -1,0 +1,12 @@
+{% extends "dashboard/base.html" %}
+{% block title %}{{ section.label }}{% endblock %}
+{% block breadcrumb %}{{ section.label }}{% endblock %}
+{% block dashboard_content %}
+<div class="page-heading"><div><p class="eyebrow">Content manager</p><h1>{{ section.label }}</h1><p class="page-subtitle">{{ rows|length }} item{{ rows|length|pluralize }} in this section.</p></div>{% if can_manage %}<a class="button" href="{% url 'dashboard_add' section.key %}">＋ Add {{ section.label|lower }}</a>{% endif %}</div>
+<section class="panel"><div class="table-wrap"><table class="data-table"><thead><tr>{% for label, attr in section.columns %}<th>{{ label }}</th>{% endfor %}<th>Actions</th></tr></thead><tbody>
+{% for row in rows %}<tr>{% for value in row.cells %}<td>{% if section.key == 'messages' and forloop.counter == 5 %}<span class="read-pill {% if value == 'No' %}unread-pill{% endif %}">{% if value == 'Yes' %}Read{% else %}Unread{% endif %}</span>{% else %}{{ value }}{% endif %}</td>{% endfor %}<td><div class="row-actions">
+{% if section.key == 'messages' %}{% if not row.record.is_read %}<form class="inline-form" method="post" action="{% url 'dashboard_mark_read' row.record.pk %}">{% csrf_token %}<button class="button small secondary" type="submit">Mark read</button></form>{% endif %}
+{% elif can_manage %}<a class="button small secondary" href="{% url 'dashboard_edit' section.key row.record.pk %}">Edit</a><a class="button small danger" href="{% url 'dashboard_delete' section.key row.record.pk %}">Delete</a>{% endif %}
+</div></td></tr>{% empty %}<tr><td colspan="20" class="empty-state">Nothing here yet. Add your first item to get started.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}

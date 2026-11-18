@@ -1,0 +1,17 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Overview{% endblock %}
+{% block breadcrumb %}Overview{% endblock %}
+{% block dashboard_content %}
+<div class="page-heading"><div><p class="eyebrow">Your workspace</p><h1>Good to see you.</h1><p class="page-subtitle">Manage your portfolio content from one place.</p></div><a class="button" href="{% url 'index' %}" target="_blank" rel="noopener">Open portfolio ↗</a></div>
+<div class="stats">
+  {% for item in counts %}<a class="panel stat" href="{% url 'dashboard_section' item.key %}"><span class="stat-label">{{ item.label }}</span><div class="stat-value">{{ item.count }}</div><div class="stat-note">Manage {{ item.label|lower }} →</div></a>{% endfor %}
+</div>
+<div class="dashboard-grid">
+  <section class="panel"><div class="panel-head"><h2>Quick actions</h2><span class="stat-label">Jump into editing</span></div><div class="quick-links">
+    {% for item in sections %}{% if item.key != 'messages' %}<a class="quick-link" href="{% url 'dashboard_section' item.key %}"><strong>{{ item.label }} <span aria-hidden="true">↗</span></strong><span>View and update content</span></a>{% endif %}{% endfor %}
+  </div></section>
+  <section class="panel"><div class="panel-head"><h2>Recent messages</h2><a href="{% url 'dashboard_section' 'messages' %}">View all →{% if unread_count %} · {{ unread_count }} unread{% endif %}</a></div>
+    <div class="message-list">{% for item in recent_messages %}<div class="message-item"><div><strong>{{ item.name }}</strong><p>{{ item.subject|default:item.message }}</p></div><time>{{ item.sent_at|date:'d M' }}</time></div>{% empty %}<div class="empty-state">No messages yet.</div>{% endfor %}</div>
+  </section>
+</div>
+{% endblock %}
