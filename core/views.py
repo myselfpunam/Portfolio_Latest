@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
@@ -10,18 +11,18 @@ from itertools import groupby
 from .models import Profile, Skill, Experience, Education, Achievement, Project, Resume, ContactMessage
 from .dashboard_forms import (
     AchievementDashboardForm, EducationDashboardForm, ExperienceDashboardForm,
-    ProfileDashboardForm, ProjectDashboardForm, ResumeDashboardForm, SkillDashboardForm,
+    ProfileDashboardForm, ProjectDashboardForm, SkillDashboardForm,
 )
+from .resume_pdf import build_resume_pdf
 
 
 DASHBOARD_SECTIONS = [
     {'key': 'profile', 'label': 'Profile', 'model': Profile, 'form': ProfileDashboardForm, 'columns': [('Name', 'name'), ('Role', 'title'), ('Email', 'email')]},
     {'key': 'skills', 'label': 'Skills', 'model': Skill, 'form': SkillDashboardForm, 'columns': [('Skill', 'name'), ('Category', 'get_category_display'), ('Level', 'proficiency')]},
-    {'key': 'experience', 'label': 'Experience', 'model': Experience, 'form': ExperienceDashboardForm, 'columns': [('Role', 'role'), ('Company', 'company'), ('Period', 'duration_label')]},
+    {'key': 'experience', 'label': 'Experience', 'model': Experience, 'form': ExperienceDashboardForm, 'columns': [('Role', 'role'), ('Company', 'company'), ('CV section', 'cv_section_label'), ('Period', 'duration_label')]},
     {'key': 'education', 'label': 'Education', 'model': Education, 'form': EducationDashboardForm, 'columns': [('Degree', 'degree'), ('Institution', 'institution'), ('Period', 'year_label')]},
     {'key': 'achievements', 'label': 'Achievements & Certifications', 'model': Achievement, 'form': AchievementDashboardForm, 'columns': [('Title', 'title'), ('Type', 'get_category_display'), ('Issuer', 'issuer'), ('Date', 'date')]},
     {'key': 'projects', 'label': 'Projects', 'model': Project, 'form': ProjectDashboardForm, 'columns': [('Project', 'title'), ('Featured', 'is_featured'), ('Slug', 'slug')]},
-    {'key': 'resume', 'label': 'Resume / CV', 'model': Resume, 'form': ResumeDashboardForm, 'columns': [('Label', 'label'), ('File', 'file'), ('Updated', 'updated_at')]},
     {'key': 'messages', 'label': 'Messages', 'model': ContactMessage, 'form': None, 'columns': [('From', 'name'), ('Email', 'email'), ('Subject', 'subject'), ('Received', 'sent_at'), ('Read', 'is_read')]},
 ]
 
@@ -150,6 +151,21 @@ def dashboard_mark_read(request, pk):
     message.save(update_fields=['is_read'])
     messages.success(request, 'Message marked as read.')
     return redirect('dashboard_section', section_key='messages')
+
+
+def resume_pdf(request):
+    profile = Profile.objects.first()
+    pdf = build_resume_pdf(
+        profile=profile,
+        skills=Skill.objects.all(),
+        experiences=Experience.objects.all(),
+        education=Education.objects.all(),
+    )
+    response = HttpResponse(pdf, content_type='application/pdf')
+    filename_name = ''.join(char for char in (profile.name if profile else 'Portfolio') if char.isalnum() or char in ' -_').strip().replace(' ', '_')
+    response['Content-Disposition'] = f'inline; filename="{filename_name or "Portfolio"}_CV.pdf"'
+    response['Cache-Control'] = 'no-store, max-age=0'
+    return response
 
 
 def index(request):

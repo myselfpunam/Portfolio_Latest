@@ -12,7 +12,7 @@ class ProfileAdmin(admin.ModelAdmin):
     list_display = ['name', 'title', 'email', 'available_for_work', 'profile_preview']
     fieldsets = (
         ('Identity', {
-            'fields': ('name', 'title', 'tagline', 'bio', 'location', 'available_for_work')
+            'fields': ('name', 'title', 'tagline', 'bio', 'resume_summary', 'leadership_volunteering', 'interests', 'location', 'phone', 'available_for_work')
         }),
         ('Images', {
             'fields': ('profile_image', 'cover_image'),
@@ -49,10 +49,14 @@ class SkillAdmin(admin.ModelAdmin):
 
 @admin.register(Experience)
 class ExperienceAdmin(admin.ModelAdmin):
-    list_display = ['role', 'company', 'start_date', 'end_date', 'is_current', 'order']
+    list_display = ['role', 'company', 'resume_group', 'start_date', 'end_date', 'is_current', 'order']
     list_editable = ['order']
-    list_filter = ['is_current']
+    list_filter = ['is_current', 'resume_group']
     search_fields = ['role', 'company']
+    fields = [
+        'role', 'company', 'resume_group', 'company_url', 'location',
+        'start_date', 'end_date', 'is_current', 'description', 'order',
+    ]
 
 
 @admin.register(Education)

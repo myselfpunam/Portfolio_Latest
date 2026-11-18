@@ -3,6 +3,7 @@ from django.core.files.base import ContentFile
 from ckeditor_uploader.fields import RichTextUploadingField
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont, ImageOps
+import re
 
 
 class Profile(models.Model):
@@ -13,6 +14,10 @@ class Profile(models.Model):
     profile_image = models.ImageField(upload_to='profile/', blank=True, null=True)
     cover_image = models.ImageField(upload_to='cover/', blank=True, null=True)
     email = models.EmailField(blank=True)
+    phone = models.CharField(max_length=40, blank=True)
+    resume_summary = models.TextField(blank=True, help_text="Optional concise profile text for the generated CV. Leave blank to use the website bio.")
+    leadership_volunteering = models.TextField(blank=True, help_text="Optional CV section. Put one role or activity on each line.")
+    interests = models.TextField(blank=True, help_text="Optional short CV interests section.")
     github_url = models.URLField(blank=True)
     linkedin_url = models.URLField(blank=True)
     website_url = models.URLField(blank=True)
@@ -57,8 +62,14 @@ class Skill(models.Model):
 
 
 class Experience(models.Model):
+    RESUME_GROUP_CHOICES = [
+        ('auto', 'Automatic (infer from role title)'),
+        ('it', 'IT / Software'),
+        ('other', 'Other work'),
+    ]
     role = models.CharField(max_length=150)
     company = models.CharField(max_length=150)
+    resume_group = models.CharField(max_length=10, choices=RESUME_GROUP_CHOICES, default='auto', help_text="Automatic uses role-title keywords. Choose a group manually if the result needs an override.")
     company_url = models.URLField(blank=True)
     location = models.CharField(max_length=100, blank=True)
     start_date = models.DateField()
@@ -82,7 +93,40 @@ class Experience(models.Model):
 
     @property
     def description_bullets(self):
-        return [line.strip() for line in self.description.splitlines() if line.strip()]
+        return self._clean_bullets(self.description)
+
+    @staticmethod
+    def _clean_bullets(text):
+        cleaned = []
+        for line in text.splitlines():
+            line = line.strip()
+            while True:
+                without_prefix = re.sub(r'^(?:[•·▪◦‣*-]\s*|\d+[.)]\s*)', '', line).strip()
+                if without_prefix == line:
+                    break
+                line = without_prefix
+            if line:
+                cleaned.append(line)
+        return cleaned
+
+    @property
+    def cv_section(self):
+        if self.resume_group == 'it':
+            return 'work'
+        if self.resume_group == 'other':
+            return 'other'
+        title = self.role.lower().replace('-', ' ').replace('/', ' ')
+        technical_terms = (
+            'developer', 'programmer', 'software', 'front end', 'frontend',
+            'back end', 'backend', 'full stack', 'web application', 'web developer',
+            'devops', 'qa engineer', 'test engineer', 'data engineer', 'it support',
+            'technical support', 'machine learning', 'computer systems',
+        )
+        return 'work' if any(term in title for term in technical_terms) else 'other'
+
+    @property
+    def cv_section_label(self):
+        return 'Work Experience' if self.cv_section == 'work' else 'Other Work Experience'
 
 
 class Education(models.Model):
