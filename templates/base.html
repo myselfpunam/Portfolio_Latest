@@ -233,7 +233,9 @@
       #navbar { top:12px;right:14px;transform:none;z-index:80; }
       .nav-shell { width:58px;height:58px!important;padding:5px!important;border-radius:50%;background:#fff;border:1px solid #eee;box-shadow:0 8px 24px rgba(0,0,0,.14); }
       #menu-btn { background:#fff; }
+      #menu-btn:hover,#menu-btn:active,#menu-btn[aria-expanded="true"] { background:#fff!important; }
       #menu-btn .menu-bar { background:#20201e!important; }
+      #menu-btn[aria-expanded="true"] .menu-bar { background:var(--accent)!important; }
       .nav-mobile-panel { width:min(280px,calc(100vw - 28px)); }
       .nav-mobile-panel .nav-link { display:flex; }
       .home-hero { min-height:0;margin:0;padding:28px 0 42px; }
